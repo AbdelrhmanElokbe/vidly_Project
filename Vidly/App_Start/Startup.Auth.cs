@@ -6,6 +6,8 @@ using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.Google;
 using Owin;
 using Vidly.Models;
+using Microsoft.Owin.Security.Facebook;
+using System.Threading.Tasks;
 
 namespace Vidly
 {
@@ -54,14 +56,51 @@ namespace Vidly
             //   consumerKey: "",
             //   consumerSecret: "");
 
+            var facebookOptions = new FacebookAuthenticationOptions()
+            {
+                AppId = "858376381608331",
+                AppSecret = "86740a51885b0fd19b0cb07414c1888c",
+            };
+
+            // Set requested scope
+            facebookOptions.Scope.Add("email");
+            facebookOptions.Scope.Add("public_profile");
+
+            // Set requested fields
+            facebookOptions.Fields.Add("email");
+            facebookOptions.Fields.Add("first_name");
+            facebookOptions.Fields.Add("last_name");
+
+            facebookOptions.Provider = new FacebookAuthenticationProvider()
+            {
+                OnAuthenticated = (context) =>
+                {
+                    // Attach the access token if you need it later on for calls on behalf of the user
+                    context.Identity.AddClaim(new System.Security.Claims.Claim("FacebookAccessToken", context.AccessToken));
+
+                    foreach (var claim in context.User)
+                    {
+                        //var claimType = string.Format("urn:facebook:{0}", claim.Key);
+                        var claimType = string.Format("{0}", claim.Key);
+                        string claimValue = claim.Value.ToString();
+
+                        if (!context.Identity.HasClaim(claimType, claimValue))
+                            context.Identity.AddClaim(new System.Security.Claims.Claim(claimType, claimValue, "XmlSchemaString", "Facebook"));
+                    }
+
+                    return Task.FromResult(0);
+                }
+            };
+
+            app.UseFacebookAuthentication(facebookOptions);
             //app.UseFacebookAuthentication(
-            //   appId: "",
-            //   appSecret: "");
+              // appId: "858376381608331",
+               //appSecret: "86740a51885b0fd19b0cb07414c1888c");
 
             //app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
             //{
-            //    ClientId = "",
-            //    ClientSecret = ""
+               // ClientId = "940981741635-dhqg305rt4lshfcg9tr7sm6d877qfuv7.apps.googleusercontent.com",
+               // ClientSecret = "MSpHAmhL1ojldfOYVhuoEe4K"
             //});
         }
     }

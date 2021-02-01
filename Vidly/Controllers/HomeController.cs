@@ -6,8 +6,11 @@ using System.Web.Mvc;
 
 namespace Vidly.Controllers
 {
+    [AllowAnonymous]
     public class HomeController : Controller
     {
+
+        [OutputCache(Duration = 0, VaryByParam = "*", NoStore = true)]
         public ActionResult Index()
         {
             return View();
@@ -15,6 +18,7 @@ namespace Vidly.Controllers
 
         public ActionResult About()
         {
+            throw new Exception();
             ViewBag.Message = "Your application description page.";
 
             return View();
